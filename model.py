@@ -1,5 +1,4 @@
 from settings import db
-from uuid import uuid4
 
 class point(db.Model):
     id = db.Column(db.Integer, primary_key=True)
