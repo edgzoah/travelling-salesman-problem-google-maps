@@ -27,9 +27,9 @@ def add():
         return str(p.id)
     return 'Failed to add'
 
-@app.route('/delete', methods=['POST'])
+@app.route('/delete', methods=['DELETE'])
 def delete():
-    if request.method == 'POST' and request.form.get('id'):
+    if request.method == 'DELETE' and request.form.get('id'):
         p = point.query.get(request.form.get('id'))
         db.session.delete(p)
         db.session.commit()
@@ -56,9 +56,9 @@ def first(points):
     return next(iter(points))
 
 def nn_tour(points, roads):
-    start = first(points)
+    start = points[0]
     tour = [start]
-    unvisited = set(points - {start})
+    unvisited = set(set(points) - {start})
     while unvisited:
         c = nearest_neighbour(tour[-1], unvisited, roads)
         tour.append(c)
@@ -67,11 +67,14 @@ def nn_tour(points, roads):
 
 @app.route('/nn_algorithm', methods=['GET'])
 def nn_algorithm():
-    pnt = set()
+    pnt = []
     points_list = point.query.all()
     for i in points_list:
-        pnt.add(i)
-    tour = nn_tour(pnt, roads=every_road(pnt))
+        pnt.append(i)
+    try:
+        tour = nn_tour(points=pnt, roads=every_road(pnt))
+    except:
+        return 'Failed'
     return '[' + ', '.join(['"' + i.name + '"' for i in tour]) +']'
 
 @app.route('/listing')

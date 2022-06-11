@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %} guwno {% endblock %}
+{% block title %} nie {% endblock %}
 {% block extrahead %} 
 <style>
-    .row {
+    .rów {
         margin: 0;
         margin-top: 10px;
         margin-bottom: 10px;
+        background-color: rgb(237, 237, 237);
     }
     .lds-ring {
   display: inline-block;
@@ -43,16 +44,46 @@
     transform: rotate(360deg);
   }
 }
+
+.cos {
+    width: 100%;
+    max-width: 425px;
+    padding: 15px;
+    margin: 0 auto;
+}
+
+.guwno {
+  padding: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.dupa {
+  font-size: 20px;
+}
+.guwno2 {
+  font-size: 15px;
+}
 </style>
 {% endblock %}
 {% block main %}
-<input type="text" id='name' placeholder="name">
-<input type="text" id="coordinates" placeholder="coordinates">
-<input type="submit" value="Add" id="sbm">
-<button id="nn_tour">Check path</button>
+
+<div class="cos">
+<div class="form-group">
+  <label for="exampleFormControlInput1">Name</label>
+  <input type="text" id="name" class="form-control" placeholder="">
+</div>
+<div class="form-group">
+  <label for="exampleFormControlInput2">Coordinates</label>
+  <input type="text" class="form-control" id="coordinates">
+</div>
+<button type="button" class="btn btn-lg btn-primary btn-block" id="sbm">Add</button>
+<button type="button" class="btn btn-lg btn-primary btn-block" id="nn_tour">Check path</button>
 <div class="points">
 </div>
-<div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+<div class="lds-ring" id="first_ring"><div></div><div></div><div></div><div></div></div>
+</div>
+
 
 <div class="modal" id="myModal">
     <div class="modal-dialog">
@@ -84,17 +115,19 @@
     $(document).ready(function() {
       const reload = () => {
         $('.points').empty();
-        $('.lds-ring').show();
+        $('#first_ring').show();
         $.ajax({
         method: 'get',
         url: '/listing',
         success: function(res) {
           points = JSON.parse(res)
-          $('.lds-ring').hide()
+          $('#first_ring').hide()
+          
           $.each(points, function(index, value) {
-            $('.points').append(`<div class="row">
-                                <p id="${value[0]}">${value[1]} --- ${value[2]}</p> <button class="del">Delete</button>
-                                </div>`)
+            $('.points').append(`<div class="rów">
+              <div class="guwno">
+                                <div id="${value[0]}"><h5 class="dupa">${value[1]}</h5><div class="guwno2">${value[2]}</div></div> <button type="button" class="btn btn-primary" id="del">Delete</button>
+                              </div></div>`)
           });
           if (!points.length) {
             $('.points').append(`<div class="row"><p>No points</p></div>`)            
@@ -118,10 +151,10 @@
                 },
             });
         });
-        $('body').on('click', '.del', function() {
+        $('body').on('click', '#del', function() {
             let current_div = $(this).parent('div');
             $.ajax({
-              method: "post",
+              method: "delete",
               url: "/delete",
               data: { id: $(this).parent('div')[0].firstElementChild.id },
               success: function (res) {
@@ -136,16 +169,18 @@
             })
           $('#nn_tour').click(function() {
               $('.modal-body').empty()
+              $('#myModal').modal();
+              $('.modal-body').append(`<div class="lds-ring" id="second_ring"><div></div><div></div><div></div><div></div></div>`)
               let arr = [];
                 $.ajax({
                     method: "get",
                     url: "/nn_algorithm",
                     success: function (res) {
                       let arr = JSON.parse(res)
+                      $('.modal-body').empty();
                       $.each(arr, function(index, value) {
                         $('.modal-body').append(`<p>${value}</p>`)
                       });
-                      $('#myModal').modal();
 
                     },
             });
