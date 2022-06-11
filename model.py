@@ -4,7 +4,6 @@ class point(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cord = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    isDeleted = db.Column(db.Boolean, nullable=False, default=0)
     def __init__(self, cord, name):
         self.cord = cord
         self.name = name
