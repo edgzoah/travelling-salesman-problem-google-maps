@@ -8,20 +8,51 @@
         margin-top: 10px;
         margin-bottom: 10px;
     }
+    .lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin: 6px;
+  border: 6px solid rgb(0, 128, 255);
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: rgb(0, 128, 255) transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 </style>
 {% endblock %}
 {% block main %}
 <input type="text" id='name' placeholder="name">
 <input type="text" id="coordinates" placeholder="coordinates">
-<input type="submit" value="add" id="sbm">
-<button id="nn_tour">sprawdz droge</button>
+<input type="submit" value="Add" id="sbm">
+<button id="nn_tour">Check path</button>
 <div class="points">
-{% for i in query %}
-<div class="row">
-<p id="{{i.id}}">{{i.name}} --- {{i.cord}}</p> <button class="del">delete</button>
 </div>
-{% endfor %}
-</div>
+<div class="lds-ring"><div></div><div></div><div></div><div></div></div>
 
 <div class="modal" id="myModal">
     <div class="modal-dialog">
@@ -29,18 +60,18 @@
       
         <!-- Modal Header -->
         <div class="modal-header">
-          <h4 class="modal-title">testtitle</h4>
+          <h4 class="modal-title">Path:</h4>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         
         <!-- Modal body -->
         <div class="modal-body">
-          testbody
+         
         </div>
         
         <!-- Modal footer -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Zamknij</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
         </div>
         
       </div>
@@ -51,6 +82,28 @@
 
 <script>
     $(document).ready(function() {
+      const reload = () => {
+        $('.points').empty();
+        $('.lds-ring').show();
+        $.ajax({
+        method: 'get',
+        url: '/listing',
+        success: function(res) {
+          points = JSON.parse(res)
+          $('.lds-ring').hide()
+          $.each(points, function(index, value) {
+            $('.points').append(`<div class="row">
+                                <p id="${value[0]}">${value[1]} --- ${value[2]}</p> <button class="del">Delete</button>
+                                </div>`)
+          });
+          if (!points.length) {
+            $('.points').append(`<div class="row"><p>No points</p></div>`)            
+          }
+        }
+      });
+      }
+      reload();
+
         $('#sbm').click(function() {
             $.ajax({
               method: "post",
@@ -58,9 +111,9 @@
               data: { coordinates: $('#coordinates').val(), name: $('#name').val() },
               success: function (res) {
                     if (res !== 'Failed to add') {
-                        $(`<div class="row">
-                            <p id="${res}">${$('#name').val()} --- ${$('#coordinates').val()}</p> <button class="del">delete</button>
-                            </div>`).appendTo('.points')
+                      reload();
+                      $('#name').val('')
+                      $('#coordinates').val('')
                     }
                 },
             });
@@ -73,7 +126,7 @@
               data: { id: $(this).parent('div')[0].firstElementChild.id },
               success: function (res) {
                   if (res == '') {
-                      current_div.remove()
+                      reload();
                   }
               },
             });
@@ -82,14 +135,18 @@
                 $('#myInput').trigger('focus')
             })
           $('#nn_tour').click(function() {
-              
-              $('#myModal').modal();
+              $('.modal-body').empty()
               let arr = [];
-              console.log(arr.push($('.points').find('p').length))
                 $.ajax({
                     method: "get",
                     url: "/nn_algorithm",
                     success: function (res) {
+                      let arr = JSON.parse(res)
+                      $.each(arr, function(index, value) {
+                        $('.modal-body').append(`<p>${value}</p>`)
+                      });
+                      $('#myModal').modal();
+
                     },
             });
           })

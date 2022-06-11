@@ -4,7 +4,7 @@ from model import point, road
 from settings import *
 import googlemaps
 
-API_KEY = 'key'
+API_KEY = ''
 client = googlemaps.Client(key=API_KEY)
 
 def get_distance(cord1, cord2):
@@ -16,23 +16,7 @@ def get_distance(cord1, cord2):
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    query = point.query.filter(point.isDeleted == 0).all()
-    # if request.method == 'POST' and form.validate():
-        # query = point(form.coordinates.data)
-        # db.session.add(query)
-        # db.session.commit()
-    #     points = set()
-    #     roads = []
-    #     tour = []
-    #     arr = form.coordinates.data.split('\n')
-    #     for i in range(len(arr)):
-    #         arr[i] = arr[i].replace('\r', '')
-    #         points.add(point(i, arr[i]))
-    #     for origin in points:
-    #         for destination in points:
-    #             if origin != destination:
-    #                 print(get_distance(origin.cord, destination.cord), origin.cord, destination.cord)
-    return render_template('index.html', query=query)
+    return render_template('index.html')
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -47,7 +31,7 @@ def add():
 def delete():
     if request.method == 'POST' and request.form.get('id'):
         p = point.query.get(request.form.get('id'))
-        p.isDeleted = 1
+        db.session.delete(p)
         db.session.commit()
         return ''
     return 'Failed to delete'
@@ -84,13 +68,17 @@ def nn_tour(points, roads):
 @app.route('/nn_algorithm', methods=['GET'])
 def nn_algorithm():
     pnt = set()
-    points_list = point.query.filter(point.isDeleted == 0).all()
+    points_list = point.query.all()
     for i in points_list:
         pnt.add(i)
     tour = nn_tour(pnt, roads=every_road(pnt))
-    return '[' + ', '.join(["'" + i.name + "'" for i in tour]) +']'
+    return '[' + ', '.join(['"' + i.name + '"' for i in tour]) +']'
 
-
+@app.route('/listing')
+def listing():
+    query = point.query.all()
+    txt = str([[i.id, i.name, i.cord] for i in query])
+    return txt.replace("'", '"')
 
 if __name__ == '__main__':
     app.run(debug=True)
