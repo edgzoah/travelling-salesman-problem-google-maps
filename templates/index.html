@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %} guwno {% endblock %}
+{% block extrahead %} 
+<style>
+    .row {
+        margin: 0;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+{% block main %}
+<input type="text" id='name' placeholder="name">
+<input type="text" id="coordinates" placeholder="coordinates">
+<input type="submit" value="add" id="sbm">
+<button id="nn_tour">sprawdz droge</button>
+<div class="points">
+{% for i in query %}
+<div class="row">
+<p id="{{i.id}}">{{i.name}} --- {{i.cord}}</p> <button class="del">delete</button>
+</div>
+{% endfor %}
+</div>
+
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">testtitle</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+          testbody
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Zamknij</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  
+
+<script>
+    $(document).ready(function() {
+        $('#sbm').click(function() {
+            $.ajax({
+              method: "post",
+              url: "/add",
+              data: { coordinates: $('#coordinates').val(), name: $('#name').val() },
+              success: function (res) {
+                    if (res !== 'Failed to add') {
+                        $(`<div class="row">
+                            <p id="${res}">${$('#name').val()} --- ${$('#coordinates').val()}</p> <button class="del">delete</button>
+                            </div>`).appendTo('.points')
+                    }
+                },
+            });
+        });
+        $('body').on('click', '.del', function() {
+            let current_div = $(this).parent('div');
+            $.ajax({
+              method: "post",
+              url: "/delete",
+              data: { id: $(this).parent('div')[0].firstElementChild.id },
+              success: function (res) {
+                  if (res == '') {
+                      current_div.remove()
+                  }
+              },
+            });
+          });
+          $('#myModal').on('shown.bs.modal', function () {
+                $('#myInput').trigger('focus')
+            })
+          $('#nn_tour').click(function() {
+              
+              $('#myModal').modal();
+              let arr = [];
+              console.log(arr.push($('.points').find('p').length))
+                $.ajax({
+                    method: "get",
+                    url: "/nn_algorithm",
+                    success: function (res) {
+                    },
+            });
+          })
+    })
+</script>
+
+{% endblock %}
