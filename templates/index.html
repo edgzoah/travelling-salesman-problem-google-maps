@@ -176,11 +176,15 @@
                     method: "get",
                     url: "/nn_algorithm",
                     success: function (res) {
+                      if (res == 'Failed') {
+                        $('.modal-body').html('Failed to get path');
+                      } else {
                       let arr = JSON.parse(res)
                       $('.modal-body').empty();
                       $.each(arr, function(index, value) {
                         $('.modal-body').append(`<p>${value}</p>`)
                       });
+                    }
 
                     },
             });
